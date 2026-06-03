@@ -1,3 +1,4 @@
+// server.js - Archivo único para backend con Express, MongoDB Atlas y autenticación JWT
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -11,7 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Schema
+// ============ MODELOS ============
 const userSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
     apellido: { type: String, required: true },
@@ -57,30 +58,15 @@ const Product = mongoose.model('Product', productSchema);
 const Order = mongoose.model('Order', orderSchema);
 const Consulta = mongoose.model('Consulta', consultaSchema);
 
-// ============ AUTH ENDPOINTS ============
-
-// Register
+// ============ ENDPOINTS DE AUTENTICACIÓN ============
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { nombre, apellido, email, telefono, direccion, password } = req.body;
-        
         const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ error: 'Email ya registrado' });
-        }
+        if (existingUser) return res.status(400).json({ error: 'Email ya registrado' });
         
         const hashedPassword = await bcrypt.hash(password, 10);
-        
-        const user = new User({
-            nombre,
-            apellido,
-            email,
-            telefono,
-            direccion,
-            password: hashedPassword,
-            rol: 'cliente'
-        });
-        
+        const user = new User({ nombre, apellido, email, telefono, direccion, password: hashedPassword, rol: 'cliente' });
         await user.save();
         
         const token = jwt.sign(
@@ -93,15 +79,7 @@ app.post('/api/auth/register', async (req, res) => {
             success: true,
             message: 'Usuario registrado exitosamente',
             token,
-            user: {
-                id: user._id,
-                nombre: user.nombre,
-                apellido: user.apellido,
-                email: user.email,
-                telefono: user.telefono,
-                direccion: user.direccion,
-                rol: user.rol
-            }
+            user: { id: user._id, nombre, apellido, email, telefono, direccion, rol: user.rol }
         });
     } catch (error) {
         console.error('Register error:', error);
@@ -109,20 +87,14 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-// Login
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        
         const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ error: 'Credenciales inválidas' });
-        }
+        if (!user) return res.status(400).json({ error: 'Credenciales inválidas' });
         
         const isValidPassword = await bcrypt.compare(password, user.password);
-        if (!isValidPassword) {
-            return res.status(400).json({ error: 'Credenciales inválidas' });
-        }
+        if (!isValidPassword) return res.status(400).json({ error: 'Credenciales inválidas' });
         
         const token = jwt.sign(
             { id: user._id, email: user.email, rol: user.rol },
@@ -132,66 +104,43 @@ app.post('/api/auth/login', async (req, res) => {
         
         res.json({
             success: true,
-            message: 'Login exitoso',
             token,
-            user: {
-                id: user._id,
-                nombre: user.nombre,
-                apellido: user.apellido,
-                email: user.email,
-                telefono: user.telefono,
-                direccion: user.direccion,
-                rol: user.rol
-            }
+            user: { id: user._id, nombre: user.nombre, apellido: user.apellido, email: user.email, telefono: user.telefono, direccion: user.direccion, rol: user.rol }
         });
     } catch (error) {
-        console.error('Login error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// Get current user
 app.get('/api/auth/me', async (req, res) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'No autorizado' });
-        }
-        
+        if (!token) return res.status(401).json({ error: 'No autorizado' });
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'my_secret_key_123');
         const user = await User.findById(decoded.id).select('-password');
-        
-        if (!user) {
-            return res.status(404).json({ error: 'Usuario no encontrado' });
-        }
-        
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
         res.json(user);
     } catch (error) {
         res.status(401).json({ error: 'Token inválido' });
     }
 });
 
-// Update profile
 app.put('/api/auth/profile', async (req, res) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'my_secret_key_123');
-        
         const user = await User.findByIdAndUpdate(
             decoded.id,
             { nombre: req.body.nombre, apellido: req.body.apellido, telefono: req.body.telefono, direccion: req.body.direccion },
             { new: true }
         ).select('-password');
-        
         res.json(user);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// ============ PRODUCTS ENDPOINTS ============
-
-// Get all products
+// ============ PRODUCTOS ============
 app.get('/api/products', async (req, res) => {
     try {
         const products = await Product.find();
@@ -201,7 +150,6 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// Create product
 app.post('/api/products', async (req, res) => {
     try {
         const product = new Product(req.body);
@@ -212,7 +160,6 @@ app.post('/api/products', async (req, res) => {
     }
 });
 
-// Update product
 app.put('/api/products/:id', async (req, res) => {
     try {
         const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -222,7 +169,6 @@ app.put('/api/products/:id', async (req, res) => {
     }
 });
 
-// Delete product
 app.delete('/api/products/:id', async (req, res) => {
     try {
         await Product.findByIdAndDelete(req.params.id);
@@ -232,8 +178,7 @@ app.delete('/api/products/:id', async (req, res) => {
     }
 });
 
-// ============ ORDERS ENDPOINTS ============
-
+// ============ ÓRDENES ============
 app.get('/api/orders', async (req, res) => {
     try {
         const orders = await Order.find();
@@ -255,8 +200,7 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
-// ============ CONSULTAS ENDPOINTS ============
-
+// ============ CONSULTAS ============
 app.get('/api/consultas', async (req, res) => {
     try {
         const consultas = await Consulta.find();
@@ -271,7 +215,6 @@ app.post('/api/consultas', async (req, res) => {
         const token = req.headers.authorization?.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'my_secret_key_123');
         const user = await User.findById(decoded.id);
-        
         const consulta = new Consulta({
             usuarioId: decoded.id,
             usuarioNombre: `${user.nombre} ${user.apellido}`,
@@ -298,7 +241,7 @@ app.put('/api/consultas/:id/responder', async (req, res) => {
     }
 });
 
-// Seed products
+// ============ SEED DE PRODUCTOS (opcional) ============
 app.post('/api/seed/products', async (req, res) => {
     try {
         const count = await Product.countDocuments();
@@ -310,13 +253,11 @@ app.post('/api/seed/products', async (req, res) => {
                 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=300&h=200&fit=crop',
                 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=200&fit=crop'
             ];
-            
             const productNames = [
                 'Royal Canin Adulto', 'Pedigree Carne', 'Whiskas Pescado', 'Dogui Premium',
                 'Desparasitante Interno', 'Vacuna Antirrábica', 'Cama Ortopédica', 'Collar Antipulgas',
                 'Shampoo Premium', 'Cepillo Dental', 'Pelota Juguete', 'Comedero Elevado'
             ];
-            
             const products = [];
             for (let i = 0; i < 25; i++) {
                 products.push({
@@ -328,7 +269,6 @@ app.post('/api/seed/products', async (req, res) => {
                     imagen: images[i % images.length]
                 });
             }
-            
             await Product.insertMany(products);
             res.json({ message: `${products.length} productos creados` });
         } else {
@@ -339,15 +279,14 @@ app.post('/api/seed/products', async (req, res) => {
     }
 });
 
-// ============ START SERVER ============
-
+// ============ INICIO DEL SERVIDOR ============
 const PORT = process.env.PORT || 5000;
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(async () => {
         console.log('✅ Conectado a MongoDB Atlas');
-        
-        // Create admin user if not exists
+
+        // Crear usuario admin por defecto si no existe
         const adminExists = await User.findOne({ email: 'admin@petcare.com' });
         if (!adminExists) {
             const hashedPassword = await bcrypt.hash('Admin123', 10);
@@ -360,10 +299,9 @@ mongoose.connect(process.env.MONGODB_URI)
                 password: hashedPassword,
                 rol: 'admin'
             });
-            console.log('✅ Usuario admin creado');
+            console.log('✅ Usuario admin creado (admin@petcare.com / Admin123)');
         }
-        
-        // Create test client if not exists
+
         const clientExists = await User.findOne({ email: 'cliente@test.com' });
         if (!clientExists) {
             const hashedPassword = await bcrypt.hash('Cliente123', 10);
@@ -376,15 +314,16 @@ mongoose.connect(process.env.MONGODB_URI)
                 password: hashedPassword,
                 rol: 'cliente'
             });
-            console.log('✅ Usuario cliente creado');
+            console.log('✅ Usuario cliente creado (cliente@test.com / Cliente123)');
         }
-        
-        // Seed products if none exist
+
+        // Opcional: seed de productos si no hay ninguno
         const productCount = await Product.countDocuments();
         if (productCount === 0) {
-            await fetch(`http://localhost:${PORT}/api/seed/products`, { method: 'POST' });
+            // Llamada interna al endpoint de seed
+            fetch(`http://localhost:${PORT}/api/seed/products`, { method: 'POST' }).catch(console.error);
         }
-        
+
         app.listen(PORT, () => {
             console.log('\n========================================');
             console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
