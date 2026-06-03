@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda - PetCare Shop</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-paw"></i>
+                <span>PetCare Shop</span>
+            </div>
+            <div class="menu-icon" id="menuIcon">
+                <i class="fas fa-bars"></i>
+            </div>
+            <div class="nav-links" id="navLinks">
+                <a href="index.html">Inicio</a>
+                <a href="tienda.html" class="active">Tienda</a>
+                <div id="userMenu"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="store-container">
+        <div class="filters-sidebar">
+            <h3><i class="fas fa-filter"></i> Filtros</h3>
+            <div class="filter-group">
+                <label>Buscar</label>
+                <input type="text" id="searchInput" placeholder="Buscar productos...">
+            </div>
+            <div class="filter-group">
+                <label>Categoría</label>
+                <select id="categoryFilter">
+                    <option value="">Todas</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Precio máximo</label>
+                <input type="range" id="priceSlider" min="0" max="100000" step="1000" value="100000">
+                <div class="price-value">₡<span id="priceValue">100,000</span></div>
+            </div>
+            <div class="filter-group">
+                <label>Stock</label>
+                <select id="stockFilter">
+                    <option value="">Todos</option>
+                    <option value="in">Solo con stock</option>
+                    <option value="out">Agotados</option>
+                </select>
+            </div>
+            <button id="clearFilters" class="btn-secondary">Limpiar Filtros</button>
+        </div>
+
+        <div class="products-container">
+            <div class="products-header">
+                <h2>Nuestros Productos</h2>
+                <button id="viewCartBtn" class="btn-cart">
+                    <i class="fas fa-shopping-cart"></i> Carrito
+                    <span id="cartTotalItems" class="cart-badge">0</span>
+                </button>
+            </div>
+            <div class="products-count" id="productsCount"></div>
+            <div class="products-grid" id="productsGrid"></div>
+        </div>
+    </div>
+
+    <!-- Modal Carrito -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Carrito de Compras</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div id="cartItems" class="cart-items-container"></div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <h3>Total: ₡<span id="cartTotal">0</span></h3>
+                </div>
+                <div class="cart-buttons">
+                    <button id="continueShopping" class="btn-secondary">Seguir Comprando</button>
+                    <button id="checkoutBtn" class="btn-primary">Proceder al Pago</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Checkout -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Finalizar Compra</h2>
+                <span class="close-checkout">&times;</span>
+            </div>
+            <form id="checkoutForm">
+                <div class="checkout-grid">
+                    <div class="checkout-section">
+                        <h3>Dirección de Entrega</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Calle *</label>
+                                <input type="text" id="calle" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Número *</label>
+                                <input type="text" id="numero" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Ciudad *</label>
+                                <input type="text" id="ciudad" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Provincia *</label>
+                                <select id="provincia" required>
+                                    <option value="">Seleccione</option>
+                                    <option>San José</option><option>Alajuela</option>
+                                    <option>Cartago</option><option>Heredia</option>
+                                    <option>Guanacaste</option><option>Puntarenas</option>
+                                    <option>Limón</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Código Postal</label>
+                            <input type="text" id="codigoPostal">
+                        </div>
+                        <div class="form-group">
+                            <label>Instrucciones</label>
+                            <textarea id="instrucciones" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono *</label>
+                            <input type="tel" id="phone" required>
+                        </div>
+                    </div>
+
+                    <div class="checkout-section">
+                        <h3>Método de Pago</h3>
+                        <div class="payment-methods">
+                            <label class="payment-method">
+                                <input type="radio" name="paymentMethod" value="SINPE Móvil" required>
+                                <i class="fas fa-mobile-alt"></i> SINPE Móvil
+                                <span class="delivery-badge">3 días</span>
+                            </label>
+                            <label class="payment-method">
+                                <input type="radio" name="paymentMethod" value="Efectivo contra entrega">
+                                <i class="fas fa-money-bill"></i> Efectivo contra entrega
+                                <span class="delivery-badge">5 días</span>
+                            </label>
+                        </div>
+                        <div id="paymentReferenceGroup" style="display:none">
+                            <div class="form-group">
+                                <label>Número SINPE</label>
+                                <input type="text" id="paymentReference" placeholder="8888-8888">
+                            </div>
+                        </div>
+                        <div class="delivery-info-panel">
+                            <h4>Plazos de Entrega</h4>
+                            <ul>
+                                <li>SINPE Móvil: 3 días hábiles</li>
+                                <li>Efectivo: 5 días hábiles</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-summary-enhanced">
+                    <h3>Resumen del Pedido</h3>
+                    <div id="checkoutSummary"></div>
+                    <div class="total-order-enhanced">
+                        <span>Total:</span>
+                        <strong>₡<span id="checkoutTotal">0</span></strong>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary btn-block">Confirmar Compra</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Éxito -->
+    <div id="successModal" class="modal">
+        <div class="modal-content success-modal">
+            <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+            <h2>¡Compra Exitosa!</h2>
+            <div id="successOrderInfo"></div>
+            <button onclick="closeSuccessModal()" class="btn-primary">Continuar</button>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/tienda.js"></script>
+    <script src="js/carrito.js"></script>
+</body>
+</html>

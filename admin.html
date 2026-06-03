@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - PetCare Shop</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-sidebar">
+            <div class="admin-logo">
+                <i class="fas fa-paw"></i>
+                <h2>PetCare Admin</h2>
+            </div>
+            <nav class="admin-nav">
+                <a href="#" data-section="dashboard" class="active">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#" data-section="products">
+                    <i class="fas fa-box"></i> Productos
+                </a>
+                <a href="#" data-section="categories">
+                    <i class="fas fa-tags"></i> Categorías
+                </a>
+                <a href="#" data-section="users">
+                    <i class="fas fa-users"></i> Usuarios
+                </a>
+                <a href="#" data-section="orders">
+                    <i class="fas fa-shopping-cart"></i> Pedidos
+                </a>
+                <a href="#" data-section="consultas">
+                    <i class="fas fa-question-circle"></i> Consultas
+                </a>
+                <a href="#" id="logoutAdmin">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </nav>
+        </div>
+
+        <div class="admin-content">
+            <!-- Dashboard -->
+            <div id="dashboardSection" class="admin-section active">
+                <h1><i class="fas fa-chart-line"></i> Dashboard</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Usuarios</h3>
+                        <p id="totalUsers">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-box"></i>
+                        <h3>Productos</h3>
+                        <p id="totalProducts">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3>Ventas</h3>
+                        <p id="totalSales">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-dollar-sign"></i>
+                        <h3>Ingresos</h3>
+                        <p id="totalRevenue">₡0</p>
+                    </div>
+                </div>
+                <div class="charts-container">
+                    <div class="chart-box">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos -->
+            <div id="productsSection" class="admin-section">
+                <div class="admin-header">
+                    <h1><i class="fas fa-box"></i> Gestión de Productos</h1>
+                    <button id="addProductBtn" class="btn-primary"><i class="fas fa-plus"></i> Nuevo Producto</button>
+                </div>
+                <div class="admin-table">
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>Imagen</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr>
+                        </thead>
+                        <tbody id="productsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Categorías -->
+            <div id="categoriesSection" class="admin-section">
+                <h1><i class="fas fa-tags"></i> Gestión de Categorías</h1>
+                <div class="add-category">
+                    <input type="text" id="newCategoryName" placeholder="Nueva categoría">
+                    <button id="addCategoryBtn" class="btn-primary"><i class="fas fa-plus"></i> Agregar</button>
+                </div>
+                <div class="admin-table">
+                    <table>
+                        <thead><tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr></thead>
+                        <tbody id="categoriesTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Usuarios -->
+            <div id="usersSection" class="admin-section">
+                <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+                <div class="admin-table">
+                    <table>
+                        <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Dirección</th><th>Rol</th><th>Registro</th></tr></thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pedidos -->
+            <div id="ordersSection" class="admin-section">
+                <h1><i class="fas fa-shopping-cart"></i> Gestión de Pedidos</h1>
+                <div class="admin-table">
+                    <table>
+                        <thead><tr><th>ID</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Pago</th><th>Acciones</th></tr></thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Consultas -->
+            <div id="consultasSection" class="admin-section">
+                <h1><i class="fas fa-question-circle"></i> Consultas de Clientes</h1>
+                <div class="consultas-list" id="consultasList"></div>
+                <div class="consulta-form">
+                    <h3>Responder Consulta</h3>
+                    <textarea id="respuestaConsulta" placeholder="Escribe tu respuesta..."></textarea>
+                    <button id="enviarRespuestaBtn" class="btn-primary">Enviar Respuesta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Producto -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Agregar Producto</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label>Nombre del Producto</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="productDescription" required rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Precio (₡)</label>
+                        <input type="number" id="productPrice" required step="1000" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" id="productStock" required min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="productCategory" required></select>
+                </div>
+                <div class="form-group">
+                    <label>URL de Imagen</label>
+                    <input type="text" id="productImage" placeholder="https://..." value="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=300&h=200&fit=crop">
+                </div>
+                <button type="submit" class="btn-primary btn-block">Guardar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
